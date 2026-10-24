@@ -17,6 +17,9 @@ jobs:
        contains(github.event.comment.path, 'components/') ||
        contains(github.event.comment.path, 'pages/'))
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     permissions:
       contents: write
       pull-requests: write
@@ -43,10 +46,10 @@ jobs:
       - name: Get comment details
         id: comment
         run: |
-          agent-reviews --detail ${{ github.event.comment.id }} --json > comment.json
-          echo "body=$(jq -r '.body' comment.json)" >> $GITHUB_OUTPUT
-          echo "path=$(jq -r '.path' comment.json)" >> $GITHUB_OUTPUT
-          echo "line=$(jq -r '.line' comment.json)" >> $GITHUB_OUTPUT
+          agent-reviews --detail ${{ github.event.comment.id }} --json > "$RUNNER_TEMP/comment.json"
+          echo "body=$(jq -r '.body' "$RUNNER_TEMP/comment.json")" >> $GITHUB_OUTPUT
+          echo "path=$(jq -r '.path' "$RUNNER_TEMP/comment.json")" >> $GITHUB_OUTPUT
+          echo "line=$(jq -r '.line' "$RUNNER_TEMP/comment.json")" >> $GITHUB_OUTPUT
 
       - name: Run frontend agent to address comment
         env:
