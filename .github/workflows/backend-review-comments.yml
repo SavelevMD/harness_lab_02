@@ -1,0 +1,90 @@
+name: Backend — address review comments
+
+on:
+  pull_request_review_comment:
+    types: [created]
+
+concurrency:
+  group: backend-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  address-comment:
+    # Пропускаем ответы самого агента и комментарии к frontend-файлам
+    if: |
+      !contains(github.event.comment.body, '<!-- agent-reply -->') &&
+      !contains(github.event.comment.path, 'src/') &&
+      !contains(github.event.comment.path, 'components/') &&
+      !contains(github.event.comment.path, 'pages/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install agent-reviews
+        run: npm install -g agent-reviews
+
+      - name: Get comment details
+        id: comment
+        run: |
+          agent-reviews --detail ${{ github.event.comment.id }} --json > comment.json
+          echo "body=$(jq -r '.body' comment.json)" >> $GITHUB_OUTPUT
+          echo "path=$(jq -r '.path' comment.json)" >> $GITHUB_OUTPUT
+          echo "line=$(jq -r '.line' comment.json)" >> $GITHUB_OUTPUT
+
+      - name: Run backend agent to address comment
+        env:
+          COMMENT_BODY: ${{ steps.comment.outputs.body }}
+          COMMENT_PATH: ${{ steps.comment.outputs.path }}
+          COMMENT_LINE: ${{ steps.comment.outputs.line }}
+        run: |
+          opencode run "Address this review comment on a C# backend file.
+          
+          File: $COMMENT_PATH
+          Line: $COMMENT_LINE
+          Comment: $COMMENT_BODY
+          
+          Read the file, understand the context, and fix the issue.
+          Then run: dotnet build && dotnet test
+          If build or tests fail, fix them before proceeding.
+          Commit the changes to the current branch."
+
+      - name: Push changes
+        run: |
+          git config user.name "backend-agent"
+          git config user.email "backend-agent@bot.local"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes made"
+            echo "HAS_CHANGES=false" >> $GITHUB_ENV
+          else
+            git commit -m "fix: address review comment on ${{ steps.comment.outputs.path }}"
+            git push
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          fi
+
+      - name: Reply to review comment
+        if: env.HAS_CHANGES == 'true'
+        run: |
+          agent-reviews --reply ${{ github.event.comment.id }} \
+            "Fixed in ${{ env.COMMIT_SHA }}. <!-- agent-reply -->"
+
+      - name: Reply if no changes needed
+        if: env.HAS_CHANGES != 'true'
+        run: |
+          agent-reviews --reply ${{ github.event.comment.id }} \
+            "Reviewed. No changes needed — this behavior is intentional. <!-- agent-reply -->"
