@@ -38,13 +38,15 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Install agent-reviews
         run: npm install -g agent-reviews
 
       - name: Get comment details
         id: comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           agent-reviews --detail ${{ github.event.comment.id }} --json > "$RUNNER_TEMP/comment.json"
           echo "body=$(jq -r '.body' "$RUNNER_TEMP/comment.json")" >> $GITHUB_OUTPUT
@@ -86,12 +88,16 @@ jobs:
 
       - name: Reply to review comment
         if: env.HAS_CHANGES == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           agent-reviews --reply ${{ github.event.comment.id }} \
             "Fixed in ${{ env.COMMIT_SHA }}. <!-- agent-reply -->"
 
       - name: Reply if no changes needed
         if: env.HAS_CHANGES != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           agent-reviews --reply ${{ github.event.comment.id }} \
             "Reviewed. No changes needed — this behavior is intentional. <!-- agent-reply -->"

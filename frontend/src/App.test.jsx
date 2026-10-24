@@ -29,6 +29,15 @@ describe("Notes with tags UI", () => {
     deleteNote.mockResolvedValue(undefined);
   });
 
+  it("renders the live clock in the header", async () => {
+    render(<App />);
+
+    expect(screen.getByTestId("clock")).toBeInTheDocument();
+
+    // allow the initial fetch to settle so the test doesn't leak state updates
+    await screen.findByText("No notes found.");
+  });
+
   it("renders the creation form with title, text and tag fields", async () => {
     render(<App />);
 
