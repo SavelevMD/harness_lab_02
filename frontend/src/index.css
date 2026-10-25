@@ -23,6 +23,20 @@ h1 {
   margin-top: 0;
 }
 
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.clock {
+  color: #16a34a;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 .field {
   display: flex;
   flex-direction: column;

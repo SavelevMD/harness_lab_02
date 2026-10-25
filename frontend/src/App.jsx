@@ -3,6 +3,7 @@ import { getNotes, getNotesByTag, createNote, deleteNote } from "./api";
 import NoteForm from "./components/NoteForm";
 import TagFilter from "./components/TagFilter";
 import NoteList from "./components/NoteList";
+import Clock from "./components/Clock";
 
 function distinctTags(notes) {
   return [...new Set(notes.map((n) => n.tag).filter(Boolean))];
@@ -66,7 +67,10 @@ export default function App() {
 
   return (
     <main className="app">
-      <h1>Notes</h1>
+      <header className="app-header">
+        <h1>Записки</h1>
+        <Clock />
+      </header>
 
       <NoteForm onSubmit={handleCreate} submitting={submitting} />
 
