@@ -35,7 +35,7 @@ describe("Notes with tags UI", () => {
     expect(screen.getByTestId("clock")).toBeInTheDocument();
 
     // allow the initial fetch to settle so the test doesn't leak state updates
-    await screen.findByText("No notes found.");
+    await screen.findByText("Нет записей");
   });
 
   it("renders the creation form with title, text and tag fields", async () => {
@@ -49,7 +49,7 @@ describe("Notes with tags UI", () => {
     ).toBeInTheDocument();
 
     // allow the initial fetch to settle so the test doesn't leak state updates
-    await screen.findByText("No notes found.");
+    await screen.findByText("Нет записей");
   });
 
   it("shows a loading state while notes are being fetched", async () => {
@@ -153,7 +153,7 @@ describe("Notes with tags UI", () => {
 
   it("disables submit until title and tag are provided", async () => {
     render(<App />);
-    await screen.findByText("No notes found.");
+    await screen.findByText("Нет записей");
 
     const button = screen.getByRole("button", { name: "Add note" });
     expect(button).toBeDisabled();
@@ -167,7 +167,7 @@ describe("Notes with tags UI", () => {
 
   it("shows validation messages when required fields are left empty", async () => {
     render(<App />);
-    await screen.findByText("No notes found.");
+    await screen.findByText("Нет записей");
 
     await user.click(screen.getByLabelText("Title"));
     await user.tab(); // blur the title input

@@ -8,7 +8,7 @@ export default function NoteList({ notes, loading, onDelete }) {
   }
 
   if (notes.length === 0) {
-    return <p className="status">No notes found.</p>;
+    return <p className="status">Нет записей</p>;
   }
 
   return (

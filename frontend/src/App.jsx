@@ -68,7 +68,7 @@ export default function App() {
   return (
     <main className="app">
       <header className="app-header">
-        <h1>Notes</h1>
+        <h1>Записки</h1>
         <Clock />
       </header>
 
